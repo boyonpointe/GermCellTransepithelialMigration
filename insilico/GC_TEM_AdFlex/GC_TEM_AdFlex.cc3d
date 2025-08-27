@@ -1,0 +1,5 @@
+<Simulation version="4.5.0">
+   <XMLScript Type="XMLScript">Simulation/GC_TEM_AdFlex.xml</XMLScript>
+   <PythonScript Type="PythonScript">Simulation/GC_TEM_AdFlex.py</PythonScript>
+   <Resource Type="Python">Simulation/GC_TEM_AdFlexSteppables.py</Resource>
+</Simulation>

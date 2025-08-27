@@ -1,0 +1,145 @@
+<CompuCell3D Revision="2" Version="4.5.0">
+   
+   <Metadata>
+      
+      <!-- Basic properties simulation -->
+      <NumberOfProcessors>1</NumberOfProcessors>
+      <DebugOutputFrequency>10</DebugOutputFrequency>
+      <!-- <NonParallelModule Name="Potts"/> -->
+   </Metadata>
+   
+   <Potts>
+      
+      <!-- Basic properties of CPM (GGH) algorithm -->
+      <Dimensions x="170" y="170" z="1"/>
+      <Steps>10000</Steps>
+      <Temperature>10.0</Temperature>
+      <NeighborOrder>1</NeighborOrder>
+   </Potts>
+   
+   
+   <Plugin Name="CellType">
+      
+      <!-- Listing all cell types in the simulation -->
+      <CellType TypeId="0" TypeName="Medium"/>
+      <CellType TypeId="1" TypeName="W"/>
+      <CellType TypeId="2" TypeName="E"/>
+      <CellType TypeId="3" TypeName="G"/>
+   </Plugin>
+   
+   <Plugin Name="Volume">
+      <VolumeEnergyParameters CellType="G" LambdaVolume="2.0" TargetVolume="109"/>
+      <VolumeEnergyParameters CellType="W" LambdaVolume="2.0" TargetVolume="2723"/>
+      <VolumeEnergyParameters CellType="E" LambdaVolume="2.0" TargetVolume="190"/>
+   </Plugin>
+   
+  <Plugin Name="Surface">
+      <SurfaceEnergyParameters CellType="G" LambdaSurface="2.0" TargetSurface="40"/>
+      <SurfaceEnergyParameters CellType="W" LambdaSurface="0.0" TargetSurface="50"/>
+      <SurfaceEnergyParameters CellType="E" LambdaSurface="2.0" TargetSurface="69"/>
+   </Plugin>
+
+   
+   <Plugin Name="CenterOfMass">
+      
+      <!-- Module tracking center of mass of each cell -->
+   </Plugin>
+   
+   <Plugin Name="NeighborTracker">
+      
+      <!-- Module tracking neighboring cells of each cell -->
+   </Plugin>
+   
+   <Plugin Name="AdhesionFlex">
+      
+      <!-- Specification of adhesion energies as a function of cadherin concentration at cell membranes -->
+      <!-- Adhesion energy is a function of two cells in ocntact. the functional form is specified by the user -->
+      <AdhesionMolecule Molecule="ECad"/>
+      <AdhesionMoleculeDensity CellType="Medium" Density="0.0" Molecule="ECad"/>
+      <AdhesionMoleculeDensity CellType="W" Density="0.0" Molecule="ECad"/>
+      <AdhesionMoleculeDensity CellType="E" Density="3.0" Molecule="ECad"/>
+      <AdhesionMoleculeDensity CellType="G" Density="0.5" Molecule="ECad"/>
+      <BindingFormula Name="Binary">
+         <Formula>min(Molecule1,Molecule2)</Formula>
+         <Variables>
+            <AdhesionInteractionMatrix>
+               <BindingParameter Molecule1="ECad" Molecule2="ECad">1.0</BindingParameter>
+            </AdhesionInteractionMatrix>
+         </Variables>
+      </BindingFormula>
+      <NeighborOrder>4</NeighborOrder>
+   </Plugin>
+   
+   <Plugin Name="Chemotaxis">
+      
+      <!-- You may repeat ChemicalField element for each chemical field declared in the PDE solvers -->
+      <!-- Specification of chemotaxis properties of select cell types. -->
+      <ChemicalField Source="FlexibleDiffusionSolverFE" Name="CF">
+         <ChemotaxisByType Lambda="0" Type="G"/>
+      </ChemicalField>
+   </Plugin>
+   
+   <Steppable Type="FlexibleDiffusionSolverFE">
+   <!-- Specification of PDE solvers -->
+      <DiffusionField Name="CF">
+         <DiffusionData>
+            <FieldName>CF</FieldName>
+            <DiffusionConstant>0</DiffusionConstant>
+            <DecayConstant>0</DecayConstant>
+            <ConcentrationFileName>Simulation/sample_chem_field_L170.txt</ConcentrationFileName>
+            </DiffusionData>
+         <BoundaryConditions>
+            <Plane Axis="X">
+               <ConstantValue PlanePosition="Min" Value="10.0"/>
+               <ConstantValue PlanePosition="Max" Value="5.0"/>
+               <!-- Other options are (examples): -->
+               <!-- <Periodic/> -->
+               <!-- <ConstantDerivative PlanePosition="Min" Value="10.0"/> -->
+            </Plane>
+            <Plane Axis="Y">
+               <ConstantDerivative PlanePosition="Min" Value="10.0"/>
+               <ConstantDerivative PlanePosition="Max" Value="5.0"/>
+               <!-- Other options are (examples): -->
+               <!-- <Periodic/> -->
+               <!-- <ConstantValue PlanePosition="Min" Value="10.0"/> -->
+            </Plane>
+         </BoundaryConditions>
+      </DiffusionField>
+   </Steppable>
+   
+   <Plugin Name="FocalPointPlasticity">
+   
+   <!-- Specification of focal point junctions -->
+   <!-- We separetely specify links between members of same cluster - InternalParameters and members of different clusters Parameters. When not using compartmental  cells comment out InternalParameters specification -->
+   <!-- To modify FPP links individually for each cell pair uncomment line below -->
+   <!-- <Local/> -->
+   <!-- Note that even though you may manipulate lambdaDistance, targetDistance and maxDistance using Python you still need to set activation energy from XML level -->
+   <!-- See CC3D manual for details on FPP plugin  -->
+   
+   <Parameters Type1="E" Type2="E">
+      <Lambda>100</Lambda>
+      <ActivationEnergy>-50</ActivationEnergy>
+      <TargetDistance>12</TargetDistance>
+      <MaxDistance>30</MaxDistance>
+      <MaxNumberOfJunctions NeighborOrder="1">2</MaxNumberOfJunctions>
+   </Parameters>
+   
+   <Parameters Type1="E" Type2="W">
+      <Lambda>100</Lambda>
+      <ActivationEnergy>-50</ActivationEnergy>
+      <TargetDistance>38</TargetDistance>
+      <MaxDistance>50</MaxDistance>
+      <MaxNumberOfJunctions NeighborOrder="1">20</MaxNumberOfJunctions>
+   </Parameters>
+   
+   <NeighborOrder>1</NeighborOrder>
+</Plugin>
+   
+   
+   <Steppable Type="PIFInitializer">
+      
+      <!-- Initial layout of cells using PIFF file. Piff files can be generated using PIFGEnerator -->
+      <PIFName>Simulation/ERing.piff</PIFName>
+   </Steppable>
+   
+</CompuCell3D>
